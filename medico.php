@@ -4,14 +4,13 @@ if ($_SESSION['user_type'] != 'M') {
     exit();
 }
 
-$connect = new mysqli("localhost", "root", "", "pi-sim");
+$connect = mysqli_connect("localhost", "root", "", "pi-sim");
 
-$patients = $connect->query("SELECT p.ID, u.NAME, u.USERNAME FROM patients p JOIN users u ON p.ID = u.ID");
+$patients = $connect->query("SELECT patients.ID, users.NAME, users.USERNAME FROM patients JOIN users ON patients.ID=users.ID");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
-    $patient_id = $_POST['patient_id'];
-    $stmt = $connect->prepare("UPDATE patients SET START_DATE = NOW() WHERE ID = ?");
-    $stmt->bind_param("i", $patient_id);
+    $patient_id = $_POST['ID'];
+    $stmt = $connect->prepare("UPDATE patients SET START_DATE = NOW() WHERE ID = $patient_id ");
     $stmt->execute();
     $stmt->close();
 }
@@ -32,9 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
     <tbody>
     <?php while($patient = $patients->fetch_assoc()): ?>
         <tr>
-            <td><?= $patient['id'] ?></td>
-            <td><?= $patient['name'] ?></td>
-            <td><?= $patient['username'] ?></td>
+            <td><?= $patient['ID'] ?></td>
+            <td><?= $patient['NAME'] ?></td>
+            <td><?= $patient['USERNAME'] ?></td>
         </tr>
     <?php endwhile; ?>
     </tbody>
@@ -47,10 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
     <div class="card-body">
         <form method="post" action="">
             <div class="mb-3">
-                <label for="patient_id" class="form-label">Selecionar Paciente:</label>
-                <select class="form-select" id="patient_id" name="patient_id">
+                <label for="ID" class="form-label">Selecionar Paciente:</label>
+                <select class="form-select" id="ID" name="ID">
                     <?php
-                    $all_patients = $connect->query("SELECT p.ID, u.NAME FROM patients p JOIN users u ON p.ID = u.ID");
+                    $all_patients = $connect->query("SELECT patients.ID, users.NAME FROM patients JOIN users ON patients.ID=users.ID ");
                     while($p = $all_patients->fetch_assoc()):
                         ?>
                         <option value="<?= $p['ID'] ?>"><?= $p['NAME'] ?></option>
