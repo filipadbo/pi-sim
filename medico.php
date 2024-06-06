@@ -4,14 +4,13 @@ if ($_SESSION['user_type'] != 'M') {
     exit();
 }
 
-$connect = mysqli_connect("localhost", "root", "", "sim");
-$query = "SELECT users.ID, NAME, USERNAME FROM patients JOIN users ON users.ID = patients.ID";
-$patients = mysqli_query($connect,$query);
+$connect = mysqli_connect("localhost", "root", "", "pi-sim");
+
+$patients = $connect->query("SELECT patients.ID, users.NAME, users.USERNAME FROM patients JOIN users ON patients.ID=users.ID");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
-    $patient_id = $_POST['patient_id'];
-    $stmt = $connect->prepare("UPDATE patients SET treatment_start = NOW() WHERE id = ?");
-    $stmt->bind_param("i", $patient_id);
+    $patient_id = $_POST['ID'];
+    $stmt = $connect->prepare("UPDATE patients SET START_DATE = NOW() WHERE ID = $patient_id ");
     $stmt->execute();
     $stmt->close();
 }
@@ -19,25 +18,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
 
 <!DOCTYPE html>
 <html lang="en">
-<?php include 'header.html'; ?>
 <h2 class="text-center">Gestão de Pacientes</h2>
 <h3 class="text-center">Pacientes Ativos</h3>
 <table class="table table-striped">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Username</th>
-        </tr>
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Username</th>
+    </tr>
     </thead>
     <tbody>
-        <?php while($patient = $patients->fetch_assoc()): ?>
+    <?php while($patient = $patients->fetch_assoc()): ?>
         <tr>
-            <td><?= $patient['id'] ?></td>
-            <td><?= $patient['name'] ?></td>
-            <td><?= $patient['username'] ?></td>
+            <td><?= $patient['ID'] ?></td>
+            <td><?= $patient['NAME'] ?></td>
+            <td><?= $patient['USERNAME'] ?></td>
         </tr>
-        <?php endwhile; ?>
+    <?php endwhile; ?>
     </tbody>
 </table>
 
@@ -48,13 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
     <div class="card-body">
         <form method="post" action="">
             <div class="mb-3">
-                <label for="patient_id" class="form-label">Selecionar Paciente:</label>
-                <select class="form-select" id="patient_id" name="patient_id">
+                <label for="ID" class="form-label">Selecionar Paciente:</label>
+                <select class="form-select" id="ID" name="ID">
                     <?php
-                    $all_patients = $connect->query("SELECT p.id, u.name FROM patients p JOIN users u ON p.user_id = u.id");
+                    $all_patients = $connect->query("SELECT patients.ID, users.NAME FROM patients JOIN users ON patients.ID=users.ID ");
                     while($p = $all_patients->fetch_assoc()):
-                    ?>
-                    <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option>
+                        ?>
+                        <option value="<?= $p['ID'] ?>"><?= $p['NAME'] ?></option>
                     <?php endwhile; ?>
                 </select>
             </div>
@@ -62,5 +60,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['start_treatment'])) {
         </form>
     </div>
 </div>
-<?php include 'footer.html'; ?>
+
 </html>

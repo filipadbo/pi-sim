@@ -1,29 +1,26 @@
 <?php session_start();
-if ($_SESSION['user_type'] != 'ADMIN') {
-    header("Location: login.php");
-    exit();
-}
+
 
 $connect = mysqli_connect("localhost", "root", "", "pi-sim");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
     $username = $_POST['username'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $password = hash("sha256",$_POST['password']);
     $user_type = $_POST['user_type'];
 
-    $stmt = $connect->prepare("INSERT INTO users (NAME, USERNAME, PASSWORD, TYPE_USER) VALUES (?, ?, ?, ?)");
+    $stmt = $connect->prepare("INSERT INTO users (NAME, USERNAME, PASSWORD, USER_TYPE) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $name, $username, $password, $user_type);
     $stmt->execute();
     $stmt->close();
 }
 
-$users = $connect->query("SELECT ID, NAME, USERNAME, TYPE_USER FROM users");
+$users = $connect->query("SELECT ID, NAME, USERNAME, USER_TYPE FROM users");
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
+<?php include 'header.html'; ?>
 <h2 class="text-center">Gestão de Utilizadores</h2>
 <div class="card my-4">
     <div class="card-header">
@@ -46,7 +43,7 @@ $users = $connect->query("SELECT ID, NAME, USERNAME, TYPE_USER FROM users");
             <div class="mb-3">
                 <label for="user_type" class="form-label">Tipo de Utilizador:</label>
                 <select class="form-select" id="user_type" name="user_type" required>
-                    <option value="Adm">Administrador</option>
+                    <option value="ADMIN">Administrador</option>
                     <option value="M">Médico</option>
                     <option value="P">Paciente</option>
                 </select>
@@ -72,10 +69,10 @@ $users = $connect->query("SELECT ID, NAME, USERNAME, TYPE_USER FROM users");
             <td><?= $user['ID'] ?></td>
             <td><?= $user['NAME'] ?></td>
             <td><?= $user['USERNAME'] ?></td>
-            <td><?= $user['TYPE_USER'] ?></td>
+            <td><?= $user['USER_TYPE'] ?></td>
         </tr>
     <?php endwhile; ?>
     </tbody>
 </table>
-
+<?php include 'footer.html'; ?>
 </html>
